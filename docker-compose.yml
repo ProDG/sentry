@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:9.6
+    container_name: sentry_postgres
+    restart: always
+    networks:
+      - sentry
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+
+  redis:
+    image: redis:5.0
+    container_name: sentry_redis
+    networks:
+      - sentry
+    restart: always
+
+  sentry:
+    build: ./sentry
+    container_name: sentry_web
+    restart: always
+    networks:
+      - sentry
+    ports:
+      - "9000:9000"
+    environment:
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      REDIS_HOST: "${REDIS_HOST}"
+      SENTRY_PORT: "${SENTRY_PORT}"
+      SENTRY_WORKERS: "${SENTRY_WORKERS}"
+
+networks:
+  sentry:
+
+volumes:
+  postgres_data: {}
