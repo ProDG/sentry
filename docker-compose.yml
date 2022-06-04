@@ -27,9 +27,13 @@ services:
       - redis
     networks:
       - sentry
+      - proxy
     command: run web
-    ports:
-      - "${SENTRY_PORT}:${SENTRY_PORT}"
+    environment:
+      VIRTUAL_HOST: sentry.t3c.pp.ua
+      VIRTUAL_PORT: 9000
+      LETSENCRYPT_HOST: sentry.t3c.pp.ua
+      LETSENCRYPT_EMAIL: ipomaranskiy@gmail.com
     env_file:
       - .env
 
@@ -61,6 +65,8 @@ services:
 
 networks:
   sentry:
+  proxy:
+    name: nginx_proxy_network
 
 volumes:
   postgres_data: {}
