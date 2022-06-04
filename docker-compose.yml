@@ -19,23 +19,51 @@ services:
       - sentry
     restart: always
 
-  sentry:
+  sentry_web:
     build: ./sentry
+    image: sentry_docker:${SENTRY_VERSION}
     container_name: sentry_web
     restart: always
+    depends_on:
+      - postgres
+      - redis
     networks:
       - sentry
+    command: run web
     ports:
-      - "9000:9000"
+      - "${SENTRY_PORT}:${SENTRY_PORT}"
+    env_file:
+      - .env
+
+  sentry_workers:
+    image: sentry_docker:${SENTRY_VERSION}
+    container_name: sentry_workers
+    restart: always
+    depends_on:
+      - sentry_web
+      - postgres
+      - redis
+    networks:
+      - sentry
+    command: run worker
     environment:
-      POSTGRES_HOST: "${POSTGRES_HOST}"
-      POSTGRES_PORT: "${POSTGRES_PORT}"
-      POSTGRES_DB: "${POSTGRES_DB}"
-      POSTGRES_USER: "${POSTGRES_USER}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      REDIS_HOST: "${REDIS_HOST}"
-      SENTRY_PORT: "${SENTRY_PORT}"
-      SENTRY_WORKERS: "${SENTRY_WORKERS}"
+      C_FORCE_ROOT: 1
+    env_file:
+      - .env
+
+  sentry_beat:
+    image: sentry_docker:${SENTRY_VERSION}
+    container_name: sentry_beat
+    restart: unless-stopped
+    depends_on:
+      - sentry_web
+      - postgres
+      - redis
+    networks:
+      - sentry
+    command: run cron
+    env_file:
+      - .env
 
 networks:
   sentry:
