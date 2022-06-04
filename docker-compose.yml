@@ -39,8 +39,6 @@ services:
     restart: always
     depends_on:
       - sentry_web
-      - postgres
-      - redis
     networks:
       - sentry
     command: run worker
@@ -55,8 +53,6 @@ services:
     restart: unless-stopped
     depends_on:
       - sentry_web
-      - postgres
-      - redis
     networks:
       - sentry
     command: run cron
